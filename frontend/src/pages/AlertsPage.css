@@ -1,0 +1,33 @@
+.alerts-form-card, .rules-table-card {
+  margin-bottom: 2rem;
+}
+
+.alerts-form-card h2, .rules-table-card h2, .incidents-table-card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mt-1 {
+  margin-top: 1rem;
+}
+
+.incident-active td {
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.status-pill.healthy {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.status-pill.down {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.status-pill.gray {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+}
