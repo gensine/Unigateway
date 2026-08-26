@@ -3,8 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import UptimeBadge from './UptimeBadge';
 import './StatusCard.css';
 
+/*
+ *
+ * - This is a "Presentational" or "Dumb" component. It doesn't fetch its own data.
+ *   It receives a `service` object via "props" and simply renders it.
+ * - By passing in data as props, we make this component highly reusable.
+ */
 export default function StatusCard({ service }) {
+  // useNavigate is a hook from React Router that allows us to change pages programmatically.
   const navigate = useNavigate();
+  // Object destructuring: unpacking properties from the `service` object into distinct variables.
   const { id, name, owner_team, status, latency_ms, uptime_pct, last_checked } = service;
 
   const getStatusColor = () => {

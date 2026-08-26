@@ -1,3 +1,9 @@
+/*
+ *
+ * - This file contains structural layout and global utility classes (like .card, .btn).
+ * - We use Flexbox (`display: flex`) for the main layout to easily push the main content to fill space
+ *   using `flex: 1`.
+ */
 .app-layout {
   min-height: 100vh;
   display: flex;

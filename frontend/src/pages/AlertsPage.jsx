@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import './AlertsPage.css';
 
+/*
+ *
+ * - This component currently uses hardcoded mock data for `rules` and `incidents`.
+ * - It demonstrates how to render lists of data using `.map()`, which is heavily used in React.
+ * - Note that every item mapped MUST have a unique `key` prop (like `key={r.id}`) so React 
+ *   can efficiently update the DOM when items are added, removed, or reordered.
+ */
 export default function AlertsPage() {
   const [rules, setRules] = useState([
     { id: 1, service: 'auth-service', condition: 'downtime', threshold: null, failures: 3, channel: 'slack', status: 'active' },

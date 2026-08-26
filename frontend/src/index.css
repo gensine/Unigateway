@@ -1,3 +1,9 @@
+/*
+ *
+ * - We define CSS Variables (Custom Properties) here inside the `:root` pseudo-class.
+ * - This makes them globally available. It's the foundation of modern theming (like Dark Mode).
+ * - Changing `--bg-dark` here updates it everywhere in the app instantly without needing SASS/LESS compilation.
+ */
 :root {
   --bg-dark: #0f172a;
   --bg-card: rgba(30, 41, 59, 0.7);

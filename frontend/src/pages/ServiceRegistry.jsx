@@ -3,6 +3,11 @@ import { getServices, createService, updateService, deleteService } from '../api
 import FilterBar from '../components/FilterBar';
 import './ServiceRegistry.css';
 
+/*
+ *
+ * - This component demonstrates complex form handling in React.
+ * - `formData` is an object holding all form fields, allowing us to update them with a single `handleChange` function.
+ */
 export default function ServiceRegistry() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +33,11 @@ export default function ServiceRegistry() {
     fetchServices();
   }, [filters]);
 
+  /*
+   *
+   * - We use dynamic object keys `[name]: value` to update the specific field that was typed in.
+   * - `prev => ({ ...prev, ... })` ensures we don't accidentally overwrite state when updates happen rapidly.
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));

@@ -57,6 +57,20 @@ let mockServices = [
   }
 ];
 
+/*
+ *
+ * - This file represents the "API Layer" or "Service Layer".
+ * - Separation of Concerns: Components shouldn't know HOW data is fetched (fetch vs axios).
+ *   They just call `getServices()` and get data back. If we change from Axios to Fetch later, 
+ *   we only update this file, not 50 different React components.
+ * - Right now this is using "mock" data to allow frontend development before the backend is ready.
+ */
+
+/*
+ *
+ * - `async/await` is modern JavaScript syntax for handling Promises.
+ * - It makes asynchronous code (like network requests) look and read like synchronous code.
+ */
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const getServices = async (params) => {

@@ -1,6 +1,13 @@
 import React from 'react';
 import './FilterBar.css';
 
+/*
+ *
+ * - Notice how `filters` and `onFilterChange` are passed in as props.
+ * - This is "Lifting State Up". The FilterBar doesn't own its state; the parent (Dashboard) does.
+ *   This allows the Dashboard to use the filter values to sort/filter the services array.
+ * - `teams` has a default parameter value (`teams = ['all', ...]`) in case it's not provided.
+ */
 export default function FilterBar({ filters, onFilterChange, teams = ['all', 'Security', 'Finance', 'Core', 'Logistics'] }) {
   const handleChange = (e) => {
     const { name, value } = e.target;

@@ -5,11 +5,21 @@ import StatusCard from '../components/StatusCard';
 import FilterBar from '../components/FilterBar';
 import './Dashboard.css';
 
+/*
+ *
+ * - This is a "Container" or "Smart" component. It holds state and fetches data.
+ * - It passes the data down to "Presentational" components like `<StatusCard />` via props.
+ */
 export default function Dashboard() {
   const [services, setServices] = useState([]);
   const [filters, setFilters] = useState({ environment: 'all', team: 'all' });
   const [loading, setLoading] = useState(true);
 
+  /*
+   *
+   * - This runs after the initial render, and whenever `filters` changes.
+   * - We use an async function inside because the effect callback itself cannot be async.
+   */
   // Fetch initial data
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -52,6 +62,15 @@ export default function Dashboard() {
   }, []);
 
   // Connect WebSocket
+  /*
+   * Browser opens a WebSocket connection to the backend
+   * │
+   * ├── stays open the whole time you have the dashboard open
+   * │
+   * └── whenever a service changes status, the backend PUSHES a message
+   *     → browser receives it instantly
+   *     → card updates on screen — no refresh needed
+   */
   useWebSocket('ws://localhost:8000/ws/live', handleWsMessage);
 
   return (

@@ -2,6 +2,12 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, ReferenceLine, Tooltip, ResponsiveContainer } from 'recharts';
 import './LatencyChart.css';
 
+/*
+ *
+ * - We are using a third-party library called `recharts` for data visualization.
+ * - <ResponsiveContainer> is used so the chart automatically resizes to fit its parent div,
+ *   which is essential for responsive design on mobile vs desktop.
+ */
 export default function LatencyChart({ data, slaThreshold, range, onRangeChange }) {
   return (
     <div className="latency-chart-container card">

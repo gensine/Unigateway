@@ -216,7 +216,7 @@ export function useWebSocket(url, onMessage) {
   const connect = useCallback(() => {
     ws.current = new WebSocket(url);
 
-    ws.current.onmessage = (e) => onMessage(JSON.parse(e.data));
+    ws.current.onmessage   = (e) => onMessage(JSON.parse(e.data));
 
     ws.current.onclose = () => {
       setTimeout(() => {

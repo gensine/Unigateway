@@ -5,6 +5,11 @@ import LatencyChart from '../components/LatencyChart';
 import UptimeBadge from '../components/UptimeBadge';
 import './ServiceDetail.css';
 
+/*
+ *
+ * - `useParams` extracts the dynamic part of the URL (e.g. the "123" in /service/123).
+ * - This allows the component to know WHICH service to fetch data for.
+ */
 export default function ServiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
