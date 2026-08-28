@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 
 // Simulated data for Phase 2 frontend dev
-const SIMULATE = true;
+const SIMULATE = false;
 const simulatedServiceIds = ['1', '2', '3', '4'];
 const simulatedStatuses = ['healthy', 'degraded', 'down'];
 

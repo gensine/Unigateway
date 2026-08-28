@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getServiceById } from '../api/services';
+import { getServiceMetrics } from '../api/metrics';
 import LatencyChart from '../components/LatencyChart';
 import UptimeBadge from '../components/UptimeBadge';
 import './ServiceDetail.css';
@@ -33,21 +34,20 @@ export default function ServiceDetail() {
   }, [id]);
 
   useEffect(() => {
-    // Generate mock chart data based on timeRange
-    const data = [];
-    const points = timeRange === '1h' ? 60 : timeRange === '6h' ? 60 : 24;
-    const now = new Date();
-    for(let i = points; i >= 0; i--) {
-      const time = new Date(now.getTime() - i * (timeRange === '1h' ? 60000 : timeRange === '6h' ? 360000 : 3600000));
-      // simulate some downtime
-      const isDown = Math.random() > 0.95;
-      data.push({
-        time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        latency_ms: isDown ? null : Math.floor(Math.random() * 300) + 50
-      });
-    }
-    setChartData(data);
-  }, [timeRange]);
+    const fetchMetrics = async () => {
+      try {
+        const res = await getServiceMetrics(id, { range: timeRange });
+        const data = res.data.map(d => ({
+          time: new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          latency_ms: d.latency_ms
+        }));
+        setChartData(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchMetrics();
+  }, [id, timeRange]);
 
   if (loading) return <div className="page-container"><div className="loading-state">Loading...</div></div>;
   if (!service) return <div className="page-container"><div className="empty-state">Service not found.</div></div>;

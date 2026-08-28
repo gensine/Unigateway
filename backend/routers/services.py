@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import models, schemas
 from database import get_db
+from scheduler import schedule_service, unschedule_service
 
 router = APIRouter()
 
@@ -14,6 +15,7 @@ def create_service(service: schemas.ServiceCreate, db: Session = Depends(get_db)
     db.add(db_service)
     db.commit()
     db.refresh(db_service)
+    schedule_service(db_service)
     return db_service
 
 @router.get("/", response_model=List[schemas.ServiceResponse])
@@ -54,6 +56,10 @@ def update_service(service_id: int, service: schemas.ServiceUpdate, db: Session 
         
     db.commit()
     db.refresh(db_service)
+    if db_service.is_active:
+        schedule_service(db_service)
+    else:
+        unschedule_service(db_service.id)
     return db_service
 
 @router.delete("/{service_id}")
@@ -65,4 +71,5 @@ def delete_service(service_id: int, db: Session = Depends(get_db)):
     # Soft delete to retain historical data
     db_service.is_active = False
     db.commit()
+    unschedule_service(service_id)
     return {"ok": True}
