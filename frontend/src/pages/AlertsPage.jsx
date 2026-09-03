@@ -1,34 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getAlertRules, createAlertRule, getAlertEvents } from '../api/alerts';
+import { getServices } from '../api/services';
 import './AlertsPage.css';
 
-/*
- *
- * - This component currently uses hardcoded mock data for `rules` and `incidents`.
- * - It demonstrates how to render lists of data using `.map()`, which is heavily used in React.
- * - Note that every item mapped MUST have a unique `key` prop (like `key={r.id}`) so React 
- *   can efficiently update the DOM when items are added, removed, or reordered.
- */
 export default function AlertsPage() {
-  const [rules, setRules] = useState([
-    { id: 1, service: 'auth-service', condition: 'downtime', threshold: null, failures: 3, channel: 'slack', status: 'active' },
-    { id: 2, service: 'payments-api', condition: 'latency_threshold', threshold: 500, failures: 2, channel: 'both', status: 'active' }
-  ]);
+  const [rules, setRules] = useState([]);
+  const [incidents, setIncidents] = useState([]);
+  const [services, setServices] = useState([]);
   
-  const [incidents, setIncidents] = useState([
-    { id: 101, service: 'payments-api', condition: 'downtime', triggered: '2026-08-19T10:30:00Z', resolved: null, status: 'active' },
-    { id: 102, service: 'inventory-sync', condition: 'latency_threshold', triggered: '2026-08-18T14:15:00Z', resolved: '2026-08-18T14:20:00Z', status: 'resolved' }
-  ]);
-
   const [formData, setFormData] = useState({
-    service: '', condition: 'downtime', threshold: '', failures: 3, channel: 'slack'
+    service_id: '', condition: 'downtime', threshold: '', failures: 3, channel: 'slack'
   });
+
+  const fetchData = async () => {
+    try {
+      const [rulesRes, eventsRes, servicesRes] = await Promise.all([
+        getAlertRules(),
+        getAlertEvents(),
+        getServices()
+      ]);
+      setRules(rulesRes.data);
+      setIncidents(eventsRes.data);
+      setServices(servicesRes.data);
+    } catch (err) {
+      console.error("Failed to fetch alerts data", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setRules([...rules, { ...formData, id: Date.now(), status: 'active' }]);
-    setFormData({ service: '', condition: 'downtime', threshold: '', failures: 3, channel: 'slack' });
+    try {
+      const payload = {
+        ...formData,
+        service_id: parseInt(formData.service_id, 10),
+        threshold: formData.condition === 'downtime' ? null : parseInt(formData.threshold, 10),
+        failures: parseInt(formData.failures, 10)
+      };
+      await createAlertRule(payload);
+      setFormData({ service_id: '', condition: 'downtime', threshold: '', failures: 3, channel: 'slack' });
+      fetchData();
+    } catch (err) {
+      console.error("Failed to create rule", err);
+      alert("Failed to create rule");
+    }
   };
 
   const getMttr = (triggered, resolved) => {
@@ -39,6 +61,11 @@ export default function AlertsPage() {
     const mins = Math.floor(diff / 60);
     const secs = diff % 60;
     return `${mins}m ${secs}s`;
+  };
+
+  const getServiceName = (id) => {
+    const s = services.find(s => s.id === id);
+    return s ? s.name : `Service ${id}`;
   };
 
   return (
@@ -52,12 +79,11 @@ export default function AlertsPage() {
           <div className="form-grid">
             <div className="form-group">
               <label>Service</label>
-              <select name="service" className="form-control" required value={formData.service} onChange={handleChange}>
+              <select name="service_id" className="form-control" required value={formData.service_id} onChange={handleChange}>
                 <option value="">Select Service...</option>
-                <option value="auth-service">auth-service</option>
-                <option value="payments-api">payments-api</option>
-                <option value="orders-worker">orders-worker</option>
-                <option value="inventory-sync">inventory-sync</option>
+                {services.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
               </select>
             </div>
             <div className="form-group">
@@ -108,14 +134,19 @@ export default function AlertsPage() {
             <tbody>
               {rules.map(r => (
                 <tr key={r.id}>
-                  <td className="fw-600">{r.service}</td>
+                  <td className="fw-600">{getServiceName(r.service_id)}</td>
                   <td>{r.condition}</td>
                   <td>{r.threshold || '—'}</td>
                   <td>{r.failures}</td>
                   <td>{r.channel}</td>
-                  <td><span className={`status-pill ${r.status === 'active' ? 'healthy' : 'gray'}`}>{r.status}</span></td>
+                  <td><span className={`status-pill ${r.is_active ? 'healthy' : 'gray'}`}>{r.is_active ? 'active' : 'inactive'}</span></td>
                 </tr>
               ))}
+              {rules.length === 0 && (
+                <tr>
+                  <td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>No alert rules found.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -136,20 +167,31 @@ export default function AlertsPage() {
               </tr>
             </thead>
             <tbody>
-              {incidents.map(i => (
-                <tr key={i.id} className={i.status === 'active' ? 'incident-active' : ''}>
-                  <td className="fw-600">{i.service}</td>
-                  <td>{i.condition}</td>
-                  <td>{new Date(i.triggered).toLocaleString()}</td>
-                  <td>{i.resolved ? new Date(i.resolved).toLocaleString() : '—'}</td>
-                  <td>{getMttr(i.triggered, i.resolved)}</td>
-                  <td>
-                    <span className={`status-pill ${i.status === 'active' ? 'down' : 'healthy'}`}>
-                      {i.status === 'active' ? '🔴 Active' : '⚪ Resolved'}
-                    </span>
-                  </td>
+              {incidents.map(i => {
+                const rule = rules.find(r => r.id === i.rule_id);
+                const condition = rule ? rule.condition : 'Unknown';
+                const serviceName = rule ? getServiceName(rule.service_id) : 'Unknown';
+                
+                return (
+                  <tr key={i.id} className={i.status === 'active' ? 'incident-active' : ''}>
+                    <td className="fw-600">{serviceName}</td>
+                    <td>{condition}</td>
+                    <td>{new Date(i.triggered_at).toLocaleString()}</td>
+                    <td>{i.resolved_at ? new Date(i.resolved_at).toLocaleString() : '—'}</td>
+                    <td>{getMttr(i.triggered_at, i.resolved_at)}</td>
+                    <td>
+                      <span className={`status-pill ${i.status === 'active' ? 'down' : 'healthy'}`}>
+                        {i.status === 'active' ? '🔴 Active' : '⚪ Resolved'}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+              {incidents.length === 0 && (
+                <tr>
+                  <td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>No incidents found.</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

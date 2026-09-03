@@ -2,7 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import engine, Base, SessionLocal
-from routers import services, metrics
+from routers import services, metrics, alerts
 from ws_manager import ws_manager
 from scheduler import start_scheduler, scheduler
 
@@ -36,6 +36,7 @@ app.add_middleware(
 # Include the routers under the /api prefix
 app.include_router(services.router, prefix="/api/services", tags=["services"])
 app.include_router(metrics.router, prefix="/api/metrics", tags=["metrics"])
+app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
 
 @app.websocket("/ws/live")
 async def websocket_endpoint(ws: WebSocket):

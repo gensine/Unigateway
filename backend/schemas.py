@@ -36,3 +36,42 @@ class ServiceResponse(ServiceBase):
     class Config:
         from_attributes = True
         orm_mode = True
+
+# Alert Rule Schemas
+class AlertRuleBase(BaseModel):
+    condition: str
+    threshold: Optional[int] = None
+    failures: int = 3
+    channel: str
+    is_active: bool = True
+
+class AlertRuleCreate(AlertRuleBase):
+    service_id: int
+
+class AlertRuleUpdate(BaseModel):
+    condition: Optional[str] = None
+    threshold: Optional[int] = None
+    failures: Optional[int] = None
+    channel: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class AlertRuleResponse(AlertRuleBase):
+    id: int
+    service_id: int
+
+    class Config:
+        from_attributes = True
+        orm_mode = True
+
+# Alert Event Schemas
+class AlertEventResponse(BaseModel):
+    id: int
+    rule_id: int
+    triggered_at: datetime
+    resolved_at: Optional[datetime] = None
+    status: str
+    details: str
+
+    class Config:
+        from_attributes = True
+        orm_mode = True

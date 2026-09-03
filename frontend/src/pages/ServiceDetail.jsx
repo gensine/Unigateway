@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getServiceById } from '../api/services';
 import { getServiceMetrics } from '../api/metrics';
+import { useWebSocket } from '../hooks/useWebSocket';
 import LatencyChart from '../components/LatencyChart';
 import UptimeBadge from '../components/UptimeBadge';
 import './ServiceDetail.css';
@@ -33,6 +34,12 @@ export default function ServiceDetail() {
     fetchService();
   }, [id]);
 
+  useWebSocket('ws://localhost:8000/ws/live', (msg) => {
+    if (msg.type === 'STATUS_UPDATE' && msg.service_id === parseInt(id)) {
+      setService(prev => prev ? { ...prev, status: msg.status, latency_ms: msg.latency_ms } : prev);
+    }
+  });
+
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
@@ -42,6 +49,11 @@ export default function ServiceDetail() {
           latency_ms: d.latency_ms
         }));
         setChartData(data);
+        
+        if (res.data.length > 0) {
+           const latest = res.data[res.data.length - 1];
+           setService(prev => prev ? { ...prev, status: latest.status, latency_ms: latest.latency_ms } : prev);
+        }
       } catch (err) {
         console.error(err);
       }

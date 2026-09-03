@@ -54,7 +54,7 @@ def get_service_metrics(service_id: int, range: str = Query("24h"), db: Session 
     
     return [
         {
-            "timestamp": c.timestamp.isoformat(),
+            "timestamp": c.timestamp.replace(tzinfo=timezone.utc).isoformat(),
             "latency_ms": c.latency_ms if c.status != "down" else None,
             "status": c.status
         } for c in checks
