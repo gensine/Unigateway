@@ -17,16 +17,22 @@ export default function ServiceDetail() {
   const navigate = useNavigate();
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('24h');
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
+    document.title = "Service Details | Unigateway";
     const fetchService = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const res = await getServiceById(id);
         setService(res.data);
+        document.title = `${res.data.name} | Unigateway`;
       } catch (e) {
         console.error(e);
+        setError("Failed to load service details. Backend may be offline.");
       } finally {
         setLoading(false);
       }
@@ -61,8 +67,29 @@ export default function ServiceDetail() {
     fetchMetrics();
   }, [id, timeRange]);
 
-  if (loading) return <div className="page-container"><div className="loading-state">Loading...</div></div>;
-  if (!service) return <div className="page-container"><div className="empty-state">Service not found.</div></div>;
+  if (loading) return (
+    <div className="page-container">
+      <div className="loading-state">
+        <div className="spinner"></div>
+        Loading details...
+      </div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="page-container">
+      <div className="error-banner">⚠️ {error}</div>
+    </div>
+  );
+  
+  if (!service) return (
+    <div className="page-container">
+      <div className="empty-state">
+        <h3>Service not found</h3>
+        <p>This service may have been deleted.</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="page-container">

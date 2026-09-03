@@ -46,21 +46,38 @@ Unigateway/
 └── phase_breakdown.md        # Technical specs & roadmap
 ```
 
-## 🏃‍♂️ How to Run
+## 🏃‍♂️ Quick Start
 
-Running the project is incredibly simple thanks to the included startup script.
+### Local Development
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+# (Create a .env file based on the Environment Variables section below)
+uvicorn main:app --reload
 
-### Prerequisites
-- Node.js (for the frontend)
-- Python 3.9+ (for the backend)
+# Frontend
+cd frontend
+npm install
+npm run dev
+```
 
-### Steps
-1. Open a terminal (PowerShell) in the root `Unigateway` directory.
-2. Execute the runner script:
-   ```powershell
-   .\run.ps1
-   ```
-3. A separate PowerShell window will automatically open to start the Python Backend on port `8000`.
-4. Your current terminal window will start the React Frontend and automatically launch your browser to `http://localhost:5173`.
+### Docker (Recommended)
+You can launch the entire stack with a single command:
+```bash
+docker-compose up --build -d
+```
+- **Frontend Dashboard**: `http://localhost:3000`
+- **Backend API Docs**: `http://localhost:8000/docs`
 
-> **Note:** If PowerShell blocks the script, you may need to run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` to allow local scripts to execute.
+## ⚙️ Environment Variables
+| Variable           | Description                      | Example                        |
+|--------------------|----------------------------------|--------------------------------|
+| DATABASE_URL       | SQLAlchemy DB connection string  | sqlite:///./data/monitor.db    |
+| JWT_SECRET         | Secret key for JWT signing       | your-secret-here               |
+| SLACK_WEBHOOK_URL  | Incoming webhook for Slack alerts| https://hooks.slack.com/...    |
+| SMTP_HOST          | Email server host                | smtp.gmail.com                 |
+| SMTP_PORT          | Email server port                | 587                            |
+| SMTP_USER          | SMTP username / email address    | alerts@yourcompany.com         |
+| SMTP_PASS          | SMTP password / app password     | ••••••••                       |
+| CORS_ORIGIN        | Frontend origin for CORS         | http://localhost:3000          |

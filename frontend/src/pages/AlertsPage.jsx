@@ -7,6 +7,8 @@ export default function AlertsPage() {
   const [rules, setRules] = useState([]);
   const [incidents, setIncidents] = useState([]);
   const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   const [formData, setFormData] = useState({
     service_id: '', condition: 'downtime', threshold: '', failures: 3, channel: 'slack'
@@ -22,12 +24,17 @@ export default function AlertsPage() {
       setRules(rulesRes.data);
       setIncidents(eventsRes.data);
       setServices(servicesRes.data);
+      setError(null);
     } catch (err) {
       console.error("Failed to fetch alerts data", err);
+      setError("Failed to load alerts. Backend may be offline.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
+    document.title = "Alerts & Rules | Unigateway";
     fetchData();
     const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
@@ -68,10 +75,25 @@ export default function AlertsPage() {
     return s ? s.name : `Service ${id}`;
   };
 
+  if (loading) return (
+    <div className="page-container">
+      <div className="loading-state">
+        <div className="spinner"></div>
+        Loading alerts...
+      </div>
+    </div>
+  );
+
   return (
     <div className="page-container">
       <h1>Alerts & Rules</h1>
       <p>Configure alerting rules and view incident history.</p>
+
+      {error && (
+        <div className="error-banner mb-2">
+          ⚠️ {error}
+        </div>
+      )}
 
       <div className="card alerts-form-card">
         <h2>Create Alert Rule</h2>

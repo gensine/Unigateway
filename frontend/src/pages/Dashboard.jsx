@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [services, setServices] = useState([]);
   const [filters, setFilters] = useState({ environment: 'all', team: 'all' });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   /*
    *
@@ -22,13 +23,16 @@ export default function Dashboard() {
    */
   // Fetch initial data
   useEffect(() => {
+    document.title = "Dashboard | Unigateway";
     const fetchInitialData = async () => {
       setLoading(true);
+      setError(null);
       try {
         const res = await getServices(filters);
         setServices(res.data);
       } catch (err) {
         console.error(err);
+        setError("Backend offline — retrying...");
       } finally {
         setLoading(false);
       }
@@ -84,10 +88,22 @@ export default function Dashboard() {
 
       <FilterBar filters={filters} onFilterChange={setFilters} />
 
+      {error && (
+        <div className="error-banner">
+          ⚠️ {error}
+        </div>
+      )}
+
       {loading ? (
-        <div className="loading-state">Loading dashboard...</div>
-      ) : services.length === 0 ? (
-        <div className="empty-state">No services match your filters.</div>
+        <div className="loading-state">
+          <div className="spinner"></div>
+          Loading dashboard...
+        </div>
+      ) : services.length === 0 && !error ? (
+        <div className="empty-state">
+          <h3>No services found</h3>
+          <p>Register a service to start monitoring.</p>
+        </div>
       ) : (
         <div className="dashboard-grid">
           {services.map(svc => (
