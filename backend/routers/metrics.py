@@ -54,12 +54,45 @@ def get_service_metrics(service_id: int, range: str = Query("24h"), db: Session 
     
     return [
         {
-            "timestamp": c.timestamp.replace(tzinfo=timezone.utc).isoformat(),
+            "timestamp": c.timestamp.isoformat() if hasattr(c.timestamp, 'isoformat') else str(c.timestamp),
             "latency_ms": c.latency_ms if c.status != "down" else None,
             "status": c.status
         } for c in checks
     ]
-    
+
+@router.get("/{service_id}/summary")
+def get_service_summary(service_id: int, db: Session = Depends(get_db)):
+    service = db.query(models.Service).filter(models.Service.id == service_id).first()
+    if not service:
+        return {"uptime_pct": 100.0, "p95": 0, "sla_compliance_pct": 100.0, "error_rate_pct": 0.0}
+
+    checks = db.query(models.HealthCheck).filter(
+        models.HealthCheck.service_id == service_id
+    ).all()
+
+    total_polls = len(checks)
+    if total_polls == 0:
+        return {"uptime_pct": 100.0, "p95": 0, "sla_compliance_pct": 100.0, "error_rate_pct": 0.0}
+
+    successful_polls = sum(1 for c in checks if c.status != "down")
+    healthy_polls = sum(1 for c in checks if c.status == "healthy")
+    failed_polls = sum(1 for c in checks if c.status == "down")
+
+    latencies = sorted([c.latency_ms for c in checks if c.latency_ms is not None and c.status != "down"])
+    p95 = 0
+    if latencies:
+        idx = int(0.95 * len(latencies))
+        if idx >= len(latencies):
+            idx = len(latencies) - 1
+        p95 = latencies[idx]
+
+    return {
+        "uptime_pct": round((successful_polls / total_polls) * 100, 2),
+        "p95": p95,
+        "sla_compliance_pct": round((healthy_polls / total_polls) * 100, 2),
+        "error_rate_pct": round((failed_polls / total_polls) * 100, 2)
+    }
+
 @router.get("/{service_id}/percentiles")
 def get_service_percentiles(service_id: int, db: Session = Depends(get_db)):
     checks = db.query(models.HealthCheck.latency_ms).filter(

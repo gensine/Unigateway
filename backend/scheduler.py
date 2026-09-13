@@ -97,6 +97,10 @@ async def poll_service(service_id: int):
         db.add(check)
         db.commit()
         
+        total_checks = db.query(HealthCheck).filter(HealthCheck.service_id == service_id).count()
+        up_checks = db.query(HealthCheck).filter(HealthCheck.service_id == service_id, HealthCheck.status != "down").count()
+        uptime_pct = round((up_checks / total_checks) * 100, 2) if total_checks > 0 else 100.0
+
         # Broadcast the new status to all connected frontend clients via WebSocket
         await ws_manager.broadcast({
             "type": "STATUS_UPDATE",
@@ -104,6 +108,7 @@ async def poll_service(service_id: int):
             "service_name": service.name,
             "status": status,
             "latency_ms": latency_ms,
+            "uptime_pct": uptime_pct,
             "is_up": is_up,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })

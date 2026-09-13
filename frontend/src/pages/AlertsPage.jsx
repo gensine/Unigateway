@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAlertRules, createAlertRule, getAlertEvents } from '../api/alerts';
+import { getAlertRules, createAlertRule, deleteAlertRule, getAlertEvents } from '../api/alerts';
 import { getServices } from '../api/services';
 import './AlertsPage.css';
 
@@ -57,6 +57,17 @@ export default function AlertsPage() {
     } catch (err) {
       console.error("Failed to create rule", err);
       alert("Failed to create rule");
+    }
+  };
+
+  const handleDeleteRule = async (ruleId) => {
+    if (confirm("Are you sure you want to deactivate this rule?")) {
+      try {
+        await deleteAlertRule(ruleId);
+        fetchData();
+      } catch (err) {
+        console.error("Failed to delete rule", err);
+      }
     }
   };
 
@@ -151,6 +162,7 @@ export default function AlertsPage() {
                 <th>Failures</th>
                 <th>Channel</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -162,11 +174,14 @@ export default function AlertsPage() {
                   <td>{r.failures}</td>
                   <td>{r.channel}</td>
                   <td><span className={`status-pill ${r.is_active ? 'healthy' : 'gray'}`}>{r.is_active ? 'active' : 'inactive'}</span></td>
+                  <td>
+                    <button className="btn-icon text-danger" title="Deactivate Rule" onClick={() => handleDeleteRule(r.id)}>🗑️</button>
+                  </td>
                 </tr>
               ))}
               {rules.length === 0 && (
                 <tr>
-                  <td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>No alert rules found.</td>
+                  <td colSpan="7" style={{textAlign: 'center', padding: '20px'}}>No alert rules found.</td>
                 </tr>
               )}
             </tbody>

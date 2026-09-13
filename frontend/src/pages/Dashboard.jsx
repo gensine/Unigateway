@@ -51,8 +51,7 @@ export default function Dashboard() {
               status: msg.status,
               latency_ms: msg.latency_ms,
               last_checked: msg.timestamp,
-              // mock uptime calculation for demo
-              uptime_pct: msg.status === 'down' ? Math.max(0, svc.uptime_pct - 0.1) : Math.min(100, svc.uptime_pct + 0.05)
+              uptime_pct: msg.uptime_pct !== undefined ? msg.uptime_pct : svc.uptime_pct
             };
           }
           return svc;

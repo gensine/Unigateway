@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getServiceById } from '../api/services';
-import { getServiceMetrics } from '../api/metrics';
+import { getServiceMetrics, getServiceSummary } from '../api/metrics';
 import { useWebSocket } from '../hooks/useWebSocket';
 import LatencyChart from '../components/LatencyChart';
 import UptimeBadge from '../components/UptimeBadge';
 import './ServiceDetail.css';
 
-/*
- *
- * - `useParams` extracts the dynamic part of the URL (e.g. the "123" in /service/123).
- * - This allows the component to know WHICH service to fetch data for.
- */
 export default function ServiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -20,6 +15,7 @@ export default function ServiceDetail() {
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('24h');
   const [chartData, setChartData] = useState([]);
+  const [summary, setSummary] = useState({ uptime_pct: 100.0, p95: 0, sla_compliance_pct: 100.0, error_rate_pct: 0.0 });
 
   useEffect(() => {
     document.title = "Service Details | Unigateway";
@@ -27,9 +23,13 @@ export default function ServiceDetail() {
       setLoading(true);
       setError(null);
       try {
-        const res = await getServiceById(id);
-        setService(res.data);
-        document.title = `${res.data.name} | Unigateway`;
+        const [serviceRes, summaryRes] = await Promise.all([
+          getServiceById(id),
+          getServiceSummary(id)
+        ]);
+        setService(serviceRes.data);
+        setSummary(summaryRes.data);
+        document.title = `${serviceRes.data.name} | Unigateway`;
       } catch (e) {
         console.error(e);
         setError("Failed to load service details. Backend may be offline.");
@@ -41,8 +41,9 @@ export default function ServiceDetail() {
   }, [id]);
 
   useWebSocket('ws://localhost:8000/ws/live', (msg) => {
-    if (msg.type === 'STATUS_UPDATE' && msg.service_id === parseInt(id)) {
+    if (msg.type === 'STATUS_UPDATE' && msg.service_id === parseInt(id, 10)) {
       setService(prev => prev ? { ...prev, status: msg.status, latency_ms: msg.latency_ms } : prev);
+      getServiceSummary(id).then(res => setSummary(res.data)).catch(() => {});
     }
   });
 
@@ -117,21 +118,22 @@ export default function ServiceDetail() {
         </div>
         <div className="stat-card card">
           <div className="stat-label">Uptime</div>
-          <div className="stat-value"><UptimeBadge uptime={service.uptime_pct} /></div>
+          <div className="stat-value"><UptimeBadge uptime={summary.uptime_pct ?? service.uptime_pct} /></div>
         </div>
         <div className="stat-card card">
           <div className="stat-label">p95 Latency</div>
-          <div className="stat-value">{service.latency_ms ? `${service.latency_ms + 45}ms` : '—'}</div>
+          <div className="stat-value">{summary.p95 ? `${summary.p95}ms` : '—'}</div>
         </div>
         <div className="stat-card card">
           <div className="stat-label">SLA %</div>
-          <div className="stat-value">99.1%</div>
+          <div className="stat-value">{summary.sla_compliance_pct}%</div>
         </div>
         <div className="stat-card card">
           <div className="stat-label">Error Rate</div>
-          <div className="stat-value">0.2%</div>
+          <div className="stat-value">{summary.error_rate_pct}%</div>
         </div>
       </div>
     </div>
   );
 }
+

@@ -35,7 +35,6 @@ class ServiceResponse(ServiceBase):
 
     class Config:
         from_attributes = True
-        orm_mode = True
 
 # Alert Rule Schemas
 class AlertRuleBase(BaseModel):
@@ -61,7 +60,6 @@ class AlertRuleResponse(AlertRuleBase):
 
     class Config:
         from_attributes = True
-        orm_mode = True
 
 # Alert Event Schemas
 class AlertEventResponse(BaseModel):
@@ -74,4 +72,4 @@ class AlertEventResponse(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True
+
