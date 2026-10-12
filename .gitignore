@@ -23,10 +23,9 @@ frontend/dist/
 *.db-shm
 backend/monitor.db*
 
-# Documents and binaries
-*.docx
-*.doc
-*.pdf
+# Temporary Office files
+~$*
+
 
 # OS files
 .DS_Store
