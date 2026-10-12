@@ -1,0 +1,33 @@
+# Environment variables
+.env
+*.env
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+backend/venv/
+.pytest_cache/
+
+# Node & Build artifacts
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# Databases
+*.db
+*.db-wal
+*.db-shm
+backend/monitor.db*
+
+# Documents and binaries
+*.docx
+*.doc
+*.pdf
+
+# OS files
+.DS_Store
+Thumbs.db
